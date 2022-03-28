@@ -1,6 +1,4 @@
 <script>
-  import { onMount } from 'svelte';
-  import pcb from './assets/pcb.png'
   import pnp from './assets/picknplace.json'
   
   const pcbWidth = 40.3
@@ -16,12 +14,7 @@
     d: 'Diod',
     x: 'Crystal'
   }
-
-  onMount(async () => {
-    let pcbImg = document.getElementById('pcbImage')
-    let imgWidth = pcbImg.clientWidth
-    widthMultiplier = imgWidth/pcbWidth
-  })
+  let pcb = null
 
   const selectComponent = (e) => {
     const selected = e.currentTarget.value
@@ -55,6 +48,29 @@
     }
     return types[t.charAt(0).toLowerCase()] || ''
   }
+
+  const selectFile = e => {
+    e.preventDefault()
+    document.getElementById('fileElem').click()
+  }
+  
+  
+  function handleFiles() {
+    if (this.files.length) {
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(this.files[0]);
+      img.onload = function() {
+        pcb = this.src
+        setTimeout(() => {
+          let pcbImg = document.getElementById('pcbImage')
+          let imgWidth = pcbImg.clientWidth
+          widthMultiplier = imgWidth/pcbWidth
+        }, 100)
+      }
+    }
+  }
+
+
 </script>
 
 <main>
@@ -80,8 +96,14 @@
     </div>
     <div class="pcb">
       <div class="pcb-image">
-        <img id="pcbImage" src={pcb} alt="The PCB" />
-        <div class="component-overlay" style="left:calc({selectedComponent.mid_x * widthMultiplier}px - 4px);bottom:calc({selectedComponent.mid_y * widthMultiplier}px - 4px);transform:rotate({selectedComponent.Rotation}deg);"></div>
+        {#if !pcb}
+          <input type="file" id="fileElem" on:change={handleFiles} multiple accept="image/*" style="display:none">
+          <button on:click={selectFile} id="fileSelect">Select the pcb</button>
+          <h3>No files selected yet.</h3>
+        {:else}
+          <img id="pcbImage" src={pcb} alt="The PCB" />
+          <div class="component-overlay" style="left:calc({selectedComponent.mid_x * widthMultiplier}px - 4px);bottom:calc({selectedComponent.mid_y * widthMultiplier}px - 4px);transform:rotate({selectedComponent.Rotation}deg);"></div>
+        {/if}
       </div>
       {#if Object.keys(selectedComponent).length}
         <div class="component-desc">
