@@ -1,9 +1,10 @@
 <script>
-  import pnp from './assets/picknplace.json'
-  
   const pcbWidth = 40.3
   let selectedComponent = {}
-  let components = pnp
+  let selectedFilter = 'all'
+  let components = []
+  let availableComponents = []
+  let pnp = []
   let widthMultiplier
   const types = {
     c: 'Capacitor',
@@ -16,26 +17,35 @@
   }
   let pcb = null
 
+  let pnpCsv
+
   const selectComponent = (e) => {
     const selected = e.currentTarget.value
-    selectedComponent = pnp.filter(c => c.Designator == selected)[0]
+    selectedComponent = pnp.filter(c => c.designator == selected)[0]
   }
 
   const filterComponents = (f) => {
-    if (f === 'r') {
-      components = pnp.filter(c => c.Designator.charAt(0).toLowerCase() == 'r')
-    }
-    if (f === 'c') {
-      components = pnp.filter(c => c.Designator.charAt(0).toLowerCase() == 'c')
-    }
-    if (f === 'ic') {
-      components = pnp.filter(c => ['q', 'u'].includes(c.Designator.charAt(0).toLowerCase()))
-    }
-    if (f === 'all') {
-      components = pnp
-    }
-    if (f === 'others') {
-      components = pnp.filter(c => !['c', 'r', 'q', 'u'].includes(c.Designator.charAt(0).toLowerCase()))
+    switch (f) {
+      case 'r':
+        components = pnp.filter(c => c.designator.charAt(0).toLowerCase() == 'r')
+        selectedFilter = 'resistor'
+        break;
+      case 'c':
+        components = pnp.filter(c => c.designator.charAt(0).toLowerCase() == 'c')
+        selectedFilter = 'capacitor'
+        break;
+      case 'ic':
+        components = pnp.filter(c => ['q', 'u'].includes(c.designator.charAt(0).toLowerCase()))
+        selectedFilter = 'ic'
+        break;
+      case 'others':
+        components = pnp.filter(c => !['c', 'r', 'q', 'u'].includes(c.designator.charAt(0).toLowerCase()))
+        selectedFilter = 'others'
+        break;
+      default:
+        components = pnp
+        selectedFilter = 'all'
+        break;
     }
   }
 
@@ -54,7 +64,6 @@
     document.getElementById('fileElem').click()
   }
   
-  
   function handleFiles() {
     if (this.files.length) {
       const img = document.createElement("img");
@@ -70,6 +79,42 @@
     }
   }
 
+  const csvJSON = (csv) => {
+    let lines=csv.split("\n")
+    let result = []
+    let headers=lines[0].split("\t");
+    for(let i=1; i<lines.length; i++) {
+        let obj = {}
+        let currentline=lines[i].split("\t")
+        for(let j=0; j<headers.length; j++) {
+          let header = headers[j].replaceAll(' ', '_').toLowerCase()
+          obj[header] = currentline[j].replaceAll('"', '').replaceAll('mm', '')
+        }
+        result.push(obj)
+    }
+console.log(result)
+    return result
+  }
+
+  const uploadPnp = () => {
+    let csvVal = csvJSON(pnpCsv)
+    if (Array.isArray(csvVal)) {
+      components = pnp = csvVal
+      components.map(c => {
+        if (c.designator.charAt(0).toLowerCase() == 'r') {
+          !availableComponents.includes('resistor') ? availableComponents.push('resistor') : ''
+        }
+        if (c.designator.charAt(0).toLowerCase() == 'c') {
+          !availableComponents.includes('capacitor') ? availableComponents.push('capacitor') : ''
+        }
+        if (['q', 'u'].includes(c.designator.charAt(0).toLowerCase())) {
+          !availableComponents.includes('ic') ? availableComponents.push('ic') : ''
+        }
+      })
+    }
+    console.log(csvVal)
+  }
+
 
 </script>
 
@@ -77,21 +122,34 @@
   <div class="container">
     <div class="bom">
       <h1>Components</h1>
-      <div class="components-filter">
-        <button on:click={() => filterComponents('all')}>All</button>
-        <button on:click={() => filterComponents('r')}>Resistor</button>
-        <button on:click={() => filterComponents('c')}>Capacitor</button>
-        <button on:click={() => filterComponents('ic')}>IC</button>
-        <button on:click={() => filterComponents('others')}>Other</button>
-      </div>
-      <div class="components-list">
-        {#each components as component}
-          <div class="{component == selectedComponent ? 'selected' : ''} bom-component">
-            <input on:change="{selectComponent}" type="radio" name="bom" id="{component.Designator}" value="{component.Designator}" />
-            <label for="{component.Designator}">{component.Designator}: {component.Comment} <span>{component.Footprint}</span></label>
-          </div>
-        {/each}
-      </div>
+      {#if pnp.length}
+        <div class="components-filter">
+          <button on:click={() => filterComponents('all')} class:selected={selectedFilter == 'all'}>All</button>
+          {#if availableComponents.includes('resistor')}
+            <button on:click={() => filterComponents('r')} class:selected={selectedFilter == 'resistor'}>Resistor</button>
+          {/if}
+          {#if availableComponents.includes('capacitor')}
+            <button on:click={() => filterComponents('c')} class:selected={selectedFilter == 'capacitor'}>Capacitor</button>
+          {/if}
+          {#if availableComponents.includes('ic')}
+            <button on:click={() => filterComponents('ic')} class:selected={selectedFilter == 'ic'}>IC</button>
+          {/if}
+          <button on:click={() => filterComponents('others')} class:selected={selectedFilter == 'others'}>Other</button>
+        </div>
+        <div class="components-list">
+          {#each components as component}
+            <div class="{component == selectedComponent ? 'selected' : ''} bom-component">
+              <input on:change="{selectComponent}" type="radio" name="bom" id="{component.designator}" value="{component.designator}" />
+              <label for="{component.designator}">{component.designator}: {component.comment} <span>{component.footprint}</span></label>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <div class="upload-pnp">
+          <textarea bind:value={pnpCsv} name="pnpFile" id="pnpFile" cols="30" rows="10"></textarea>
+          <button on:click|preventDefault={uploadPnp}>Upload</button>
+        </div>
+      {/if}
       
     </div>
     <div class="pcb">
@@ -107,9 +165,9 @@
       </div>
       {#if Object.keys(selectedComponent).length}
         <div class="component-desc">
-          <h2>Component: {selectedComponent.Designator} - {getType(selectedComponent.Designator)}</h2>
-          <h2>Footprint: {selectedComponent.Footprint}</h2>
-          <h2>Value: {selectedComponent.Comment}</h2>
+          <h2>Component: {selectedComponent.designator} - {getType(selectedComponent.designator)}</h2>
+          <h2>Footprint: {selectedComponent.footprint}</h2>
+          <h2>Value: {selectedComponent.comment}</h2>
         </div>
       {/if}
     </div>
@@ -121,6 +179,23 @@
   .container {
     display: grid;
     grid-template-columns: 1fr 3fr;
+  }
+
+  .upload-pnp {
+    display: flex;
+    flex-direction: column;
+
+    button {
+      padding-top: 7px;
+      padding-bottom: 7px;
+      font-size: 20px;
+      cursor: pointer;
+      background-color: teal;
+
+      &:hover {
+        background-color: lighten($color: teal, $amount: 8);
+      }
+    }
   }
 
   .components-list {
@@ -187,7 +262,8 @@
         border-right: 1px solid #FFF;
       }
 
-      &:hover {
+      &:hover,
+      &.selected {
         background-color: lighten($color: teal, $amount: 8);
       }
     }
