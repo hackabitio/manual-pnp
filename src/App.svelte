@@ -1,11 +1,12 @@
 <script>
-  const pcbWidth = 40.3
+  let pcbWidth
   let selectedComponent = {}
   let selectedFilter = 'all'
   let components = []
   let availableComponents = []
   let pnp = []
   let widthMultiplier
+  let imgWidth
   const types = {
     c: 'Capacitor',
     l: 'Inductor',
@@ -49,6 +50,9 @@
     }
   }
 
+  $: layer = selectedComponent.layer ? selectedComponent.layer.toLowerCase() : 't'
+  $: layerPos = (selectedComponent.layer && selectedComponent.layer.toLowerCase() === 't') ? 'left' : 'right'
+
   const getType = (t) => {
     if (t.toLowerCase().match(/led/)) {
       return 'LED'
@@ -72,7 +76,7 @@
         pcb = this.src
         setTimeout(() => {
           let pcbImg = document.getElementById('pcbImage')
-          let imgWidth = pcbImg.clientWidth
+          imgWidth = pcbImg.clientWidth
           widthMultiplier = imgWidth/pcbWidth
         }, 100)
       }
@@ -156,11 +160,14 @@ console.log(result)
       <div class="pcb-image">
         {#if !pcb}
           <input type="file" id="fileElem" on:change={handleFiles} multiple accept="image/*" style="display:none">
+          <input type="text" bind:value={pcbWidth}>
           <button on:click={selectFile} id="fileSelect">Select the pcb</button>
           <h3>No files selected yet.</h3>
         {:else}
-          <img id="pcbImage" src={pcb} alt="The PCB" />
-          <div class="component-overlay" style="left:calc({selectedComponent.mid_x * widthMultiplier}px - 4px);bottom:calc({selectedComponent.mid_y * widthMultiplier}px - 4px);transform:rotate({selectedComponent.Rotation}deg);"></div>
+          <div class="pcb-container" style="width: {imgWidth}px;">
+            <img id="pcbImage" src={pcb} alt="The PCB" />
+            <div class="component-overlay" style="{layerPos}:calc({selectedComponent.mid_x * widthMultiplier}px - 8px);bottom:calc({selectedComponent.mid_y * widthMultiplier}px - 4px);transform:rotate({selectedComponent.rotation}deg);"></div>
+          </div>
         {/if}
       </div>
       {#if Object.keys(selectedComponent).length}
@@ -204,10 +211,14 @@ console.log(result)
   }
   
   .bom {
-    padding: 10px;
+    padding: 20px 10px;
     font-family: "Open sans", verdana;
     font-size: 18px;
     line-height: 1.5;
+
+    h1 {
+      margin-top: 0;
+    }
   }
 
   .bom-component {
@@ -233,14 +244,17 @@ console.log(result)
   }
 
   .pcb {
-    padding: 40px;
+    padding: 20px 40px;
   }
   
-  .pcb-image {
+  .pcb-container {
     position: relative;
+    overflow: hidden;
     
     img {
-      width: 100%;
+      width: auto;
+      max-width: 100%;
+      max-height: 90vh;
     }
   }
 
@@ -278,7 +292,6 @@ console.log(result)
     border: 1px solid wheat;
     box-shadow: 1px 1px 4px black;
     animation: blink 1s infinite;
-    left: -100vw;
   }
 
   @keyframes blink{
