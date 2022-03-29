@@ -151,8 +151,8 @@
         </div>
       {:else}
         <div class="upload-pnp">
-          <textarea bind:value={pnpCsv} name="pnpFile" id="pnpFile" cols="30" rows="10"></textarea>
-          <button on:click|preventDefault={uploadPnp}>Upload</button>
+          <textarea bind:value={pnpCsv} name="pnpFile" id="pnpFile" cols="30" rows="10" placeholder="Paste CSV content you've exported from PCB design software here and click on upload button"></textarea>
+          <button class="btn btn-wide" on:click|preventDefault={uploadPnp}>Upload</button>
         </div>
       {/if}
       
