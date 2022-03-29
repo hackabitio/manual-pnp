@@ -89,6 +89,7 @@
     let headers=lines[0].split("\t");
     for(let i=1; i<lines.length; i++) {
         let obj = {}
+        if (lines[i]) {
         let currentline=lines[i].split("\t")
         for(let j=0; j<headers.length; j++) {
           let header = headers[j].replaceAll(' ', '_').toLowerCase()
@@ -96,7 +97,7 @@
         }
         result.push(obj)
     }
-console.log(result)
+    }
     return result
   }
 
