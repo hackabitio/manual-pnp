@@ -90,13 +90,13 @@
     for(let i=1; i<lines.length; i++) {
         let obj = {}
         if (lines[i]) {
-        let currentline=lines[i].split("\t")
-        for(let j=0; j<headers.length; j++) {
-          let header = headers[j].replaceAll(' ', '_').toLowerCase()
-          obj[header] = currentline[j].replaceAll('"', '').replaceAll('mm', '')
+          let currentline=lines[i].split("\t")
+          for(let j=0; j<headers.length; j++) {
+            let header = headers[j].replaceAll(' ', '_').toLowerCase()
+            obj[header] = currentline[j].replaceAll('"', '').replaceAll('mm', '')
+          }
+          result.push(obj)
         }
-        result.push(obj)
-    }
     }
     return result
   }
@@ -195,16 +195,18 @@
     display: flex;
     flex-direction: column;
 
-    button {
-      padding-top: 7px;
-      padding-bottom: 7px;
-      font-size: 20px;
-      cursor: pointer;
-      background-color: teal;
+  }
 
-      &:hover {
-        background-color: lighten($color: teal, $amount: 8);
-      }
+  .btn {
+    padding: 6px 20px;
+    font-size: 20px;
+    cursor: pointer;
+    background-color: teal;
+    color: #FFF;
+    border: none;
+
+    &:hover {
+      background-color: lighten($color: teal, $amount: 8);
     }
   }
 
@@ -249,7 +251,17 @@
   .pcb {
     padding: 20px 40px;
   }
-  
+
+  .pcb-upload-container {
+    padding: 20px;
+  }
+
+  .pcb-width {
+    font-size: 18px;
+    padding: 5px 10px;
+    min-width: 250px;
+  }
+
   .pcb-container {
     position: relative;
     overflow: hidden;
