@@ -163,7 +163,7 @@
         <div class="pcb-upload-container">
           <input type="file" id="fileElem" on:change={handleFiles} multiple accept="image/*" style="display:none">
           <input class="pcb-width" type="text" bind:value={pcbWidth} placeholder="PCB width in milimeters">
-          <button class="btn" on:click={selectFile} id="fileSelect">Select the pcb</button>
+          <button class="btn pcb-btn" on:click={selectFile} id="fileSelect" disabled={!pcbWidth}>Select the pcb</button>
           <h3>No files selected yet, please select PCB screenshot in correct aspect ration.</h3>
         </div>
         {:else}
@@ -207,6 +207,11 @@
 
     &:hover {
       background-color: lighten($color: teal, $amount: 8);
+    }
+    
+    &:disabled {
+      cursor: pointer;
+      background-color: #aaa;
     }
   }
 
