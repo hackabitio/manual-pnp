@@ -160,10 +160,12 @@
     <div class="pcb">
       <div class="pcb-image">
         {#if !pcb}
+        <div class="pcb-upload-container">
           <input type="file" id="fileElem" on:change={handleFiles} multiple accept="image/*" style="display:none">
-          <input type="text" bind:value={pcbWidth}>
-          <button on:click={selectFile} id="fileSelect">Select the pcb</button>
-          <h3>No files selected yet.</h3>
+          <input class="pcb-width" type="text" bind:value={pcbWidth} placeholder="PCB width in milimeters">
+          <button class="btn" on:click={selectFile} id="fileSelect">Select the pcb</button>
+          <h3>No files selected yet, please select PCB screenshot in correct aspect ration.</h3>
+        </div>
         {:else}
           <div class="pcb-container" style="width: {imgWidth}px;">
             <img id="pcbImage" src={pcb} alt="The PCB" />
